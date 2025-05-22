@@ -1,24 +1,31 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import App from './App.jsx'
-import { useState } from 'react';
+import React, { createContext, useState } from "react";
+import ReactDOM from "react-dom/client";
+import App from "./App.jsx";
 
-export const Context = createCotext({isAuthenticated: false});
+export const Context = createContext({
+  isAuthenticated: false,
+});
 
 const AppWrapper = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user , setUser] = useState({});
+  const [user, setUser] = useState({});
 
-}
+  return (
+    <Context.Provider
+      value={{
+        isAuthenticated,
+        setIsAuthenticated,
+        user,
+        setUser,
+      }}
+    >
+      <App />
+    </Context.Provider>
+  );
+};
 
-return(
-  <Context.Provider value={{[isAuthenticated, setIsAuthenticated}}>
-    <App/>
-  </Context.Provider>
-)
-
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
+ReactDOM.createRoot(document.getElementById("root")).render(
+  <React.StrictMode>
     <AppWrapper />
-  </StrictMode>,
-)
+  </React.StrictMode>
+);
