@@ -1,144 +1,68 @@
-import axios from "axios";
-import React, { useContext, useState } from "react";
+import React, { useState, useContext } from "react";
 import { toast } from "react-toastify";
+import axios from "axios";
 import { Context } from "../main";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { useNavigate, Link, Navigate } from "react-router-dom";
 
-const Register = () => {
+export default function Register() {
   const { isAuthenticated, setIsAuthenticated } = useContext(Context);
+  const navigate = useNavigate();
 
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [nic, setNic] = useState("");
-  const [dob, setDob] = useState("");
-  const [gender, setGender] = useState("");
-  const [password, setPassword] = useState("");
+  const [form, setForm] = useState({
+    firstName: "", lastName: "", email: "", phone: "",
+    nic: "", dob: "", gender: "", password: ""
+  });
 
-  const navigateTo = useNavigate();
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
   const handleRegistration = async (e) => {
     e.preventDefault();
     try {
-      await axios
-        .post(
-          "http://localhost:5000/api/v1/user/patient/register",
-          { firstName, lastName, email, phone, nic, dob, gender, password },
-          {
-            withCredentials: true,
-            headers: { "Content-Type": "application/json" },
-          }
-        )
-        .then((res) => {
-          toast.success(res.data.message);
-          setIsAuthenticated(true);
-          navigateTo("/");
-          setFirstName("");
-          setLastName("");
-          setEmail("");
-          setPhone("");
-          setNic("");
-          setDob("");
-          setGender("");
-          setPassword("");
-        });
-    } catch (error) {
-      toast.error(error.response.data.message);
+      const res = await axios.post(
+        "http://localhost:5000/api/v1/user/patient/register",
+        form,
+        {
+          withCredentials: true,
+          headers: { "Content-Type": "application/json" }
+        }
+      );
+
+      toast.success(res.data.message);
+      setIsAuthenticated(true);
+      navigate("/");
+      setForm({
+        firstName: "", lastName: "", email: "", phone: "",
+        nic: "", dob: "", gender: "", password: ""
+      });
+    } catch (err) {
+      const msg = err?.response?.data?.message || err.message || "Registration failed.";
+      toast.error(msg);
+      console.error("Registration error:", err);
     }
   };
 
-  if (isAuthenticated) {
-    return <Navigate to={"/"} />;
-  }
+  if (isAuthenticated) return <Navigate to="/" />;
 
   return (
-    <>
-      <div className="container form-component register-form">
-        <h2>Sign Up</h2>
-        <p>Please Sign Up To Continue</p>
-        <p>
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Placeat culpa
-          voluptas expedita itaque ex, totam ad quod error?
-        </p>
-        <form onSubmit={handleRegistration}>
-          <div>
-            <input
-              type="text"
-              placeholder="First Name"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-            />
-            <input
-              type="text"
-              placeholder="Last Name"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-            />
-          </div>
-          <div>
-            <input
-              type="text"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <input
-              type="number"
-              placeholder="Mobile Number"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
-          </div>
-          <div>
-            <input
-              type="number"
-              placeholder="NIC"
-              value={nic}
-              onChange={(e) => setNic(e.target.value)}
-            />
-            <input
-              type={"date"}
-              placeholder="Date of Birth"
-              value={dob}
-              onChange={(e) => setDob(e.target.value)}
-            />
-          </div>
-          <div>
-            <select value={gender} onChange={(e) => setGender(e.target.value)}>
-              <option value="">Select Gender</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-            </select>
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-          <div
-            style={{
-              gap: "10px",
-              justifyContent: "flex-end",
-              flexDirection: "row",
-            }}
-          >
-            <p style={{ marginBottom: 0 }}>Already Registered?</p>
-            <Link
-              to={"/signin"}
-              style={{ textDecoration: "none", color: "#271776ca" }}
-            >
-              Login Now
-            </Link>
-          </div>
-          <div style={{ justifyContent: "center", alignItems: "center" }}>
-            <button type="submit">Register</button>
-          </div>
-        </form>
-      </div>
-    </>
+    <div className="register-form">
+      <h2>Sign Up</h2>
+      <form onSubmit={handleRegistration}>
+        <input name="firstName" value={form.firstName} onChange={handleChange} placeholder="First Name" required />
+        <input name="lastName" value={form.lastName} onChange={handleChange} placeholder="Last Name" required />
+        <input name="email" type="email" value={form.email} onChange={handleChange} placeholder="Email" required />
+        <input name="phone" type="text" value={form.phone} onChange={handleChange} placeholder="Phone" />
+        <input name="nic" type="text" value={form.nic} onChange={handleChange} placeholder="NIC" />
+        <input name="dob" type="date" value={form.dob} onChange={handleChange} placeholder="DOB" />
+        <select name="gender" value={form.gender} onChange={handleChange}>
+          <option value="">Select Gender</option>
+          <option value="Male">Male</option><option value="Female">Female</option>
+        </select>
+        <input name="password" type="password" value={form.password} onChange={handleChange} placeholder="Password" required />
+        <button type="submit">Register</button>
+      </form>
+      <p>Already registered? <Link to="/signin">Login Now</Link></p>
+    </div>
   );
-};
-
-export default Register;
+}
